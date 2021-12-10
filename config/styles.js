@@ -280,9 +280,8 @@ const styles = StyleSheet.create({
   },
 
   plantPanels: {
-    backgroundColor: '#000000',
     marginVertical:'1%',
-    width:'100%',
+    width:'80%',
     flexDirection: 'row',
     flexWrap:'wrap',
     justifyContent: 'space-between'
@@ -379,10 +378,9 @@ const styles = StyleSheet.create({
 
   //plantInfo
   navB: {
-    paddingTop:'14%',
+    paddingTop:'13%',
     padding:12,
     width:'100%',
-    height:'12%',
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'space-between',

@@ -40,10 +40,8 @@ export default function Register(props) {
           });
           props.change('userscreen');
         }else{
-          console.log("-sdad");
           setErrorMessage(response.data.message);
         }
-        
       })
       .catch(err => setMessage("Error register: "+err.message));
   }
@@ -59,7 +57,6 @@ export default function Register(props) {
   const passwordOnChange = (text) =>{
     setPassword(text);
   }
-
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

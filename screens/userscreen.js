@@ -18,7 +18,6 @@ const profMenu = "../assets/tmpCircle.png";
 
 export default function UserScreen(props) {
   const {id,username,name} = props.loadUser;
-  
   const [plants, setPlants] = useState([]);
   
   const mounted = useRef();
@@ -39,9 +38,17 @@ export default function UserScreen(props) {
     }
   })
 
-  const viewPlant = (data) => {
-    props.loadPlant(data);
-    props.change('plantinfo');
+  const viewPlant = (id) => {
+    config.get('plants/'+id)
+        .then((response) => {  
+          if(response.data.status != "error"){
+            props.loadPlant(response.data.message);
+            props.change('plantinfo');
+          }else{
+            setErrorMessage(response.data.message);
+          }
+        })
+    .catch(err => setMessage("Loading plant failed: "+err.message));
   }
 
   return (
@@ -69,10 +76,11 @@ export default function UserScreen(props) {
           </View>
         </View>
         <View style={styles.lineBreak}></View>
-        <TextInput style={styles.searchBox}>Search</TextInput>
+        <TextInput style={styles.searchBox} placeholder="Search"
+        ></TextInput>
         <ScrollView contentContainerStyle={styles.plantPanels}>
           {plants && plants.map((data,index) => (
-            <TouchableOpacity onPress={() => viewPlant(data)} style={styles.plantCard} key={index}>
+            <TouchableOpacity onPress={() => viewPlant(data["_id"])} style={styles.plantCard} key={index}>
               <Image source={require(plantImg)} style={styles.plantCardImg}/>
               <View style={styles.plantCardNameCont}>
                 <Text style={styles.plantCardName}>{data["name"]}</Text>

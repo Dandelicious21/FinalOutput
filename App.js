@@ -8,21 +8,22 @@ import AccountSettings from './screens/accountsettings';
 import ChangePass from './screens/changepass';
 import PlantInfo from './screens/plantinfo';
 import AddPlant from './screens/addplant';
+import EditPlant from './screens/editplant';
 import { ScrollView } from 'react-native'
 
 //change settings to account settings
 export default function App() {
 
   const [user,setUser] = useState("");
-  const [plantInfo,setPlantInfo] = useState("");
-  const [page, setPage] = useState("register");
+  const [plant,setPlant] = useState("");
+  const [page, setPage] = useState("home");
 
   const assignUser = (newUser) =>{
     setUser(newUser);
   }
 
-  const assignPlant = (chosenPlant) => {
-    setPlantInfo(chosenPlant);
+  const assignPlant = (data) => {
+    setPlant(data);
   }
 
   const changePage = (newPage) => {
@@ -51,7 +52,7 @@ export default function App() {
     )
   }else if(page == 'plantinfo'){
     return (
-      <PlantInfo change={changePage} loadPlant={plantInfo}/>
+      <PlantInfo change={changePage} loadPlant={plant}/>
     )
   }else if(page == 'changepass'){
     return (
@@ -60,11 +61,18 @@ export default function App() {
   }else if(page == 'addplant'){
     return (
       <AddPlant change={changePage} loadUser={user}/>
-      
-      
+    )
+  }else if(page == 'editplant'){
+    return (
+      <EditPlant change={changePage}
+       changePlant={assignPlant}
+       getPlant={plant}
+      />
     )
   }
-  else{}
+  else{
+    //TBD
+  }
 }
 
 

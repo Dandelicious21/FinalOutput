@@ -30,7 +30,7 @@ export default function ChangePass(props) {
     }else{
       await config.post('users/update/:id',user)
         .then((response) => {  
-            if(response.data.status = "error"){
+            if(response.data.status != "error"){
               setErrorMessage(response.data.message);
             }else{
 
