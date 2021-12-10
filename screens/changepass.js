@@ -1,5 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React,{ useState } from 'react';
+import config from '../config';
+import styles from '../config/styles';
 import { 
   StyleSheet, 
   Text,
@@ -12,6 +14,41 @@ import {
 const backIcon = "../assets/back.png";
 
 export default function ChangePass(props) {
+  const {id,username,name} = props.loadUser;
+
+  const [oldPassword,setOldPassword] = useState("");
+  const [newPassword,setNewPassword] = useState("");
+  const [errorMessage,setErrorMessage] = useState("");
+
+  const comparePassword = async() => {
+    const user = {
+      id,oldPassword,newPassword
+    }
+    
+    if(newPassword.length < 8){
+      setErrorMessage("Minimum password length is 8")
+    }else{
+      await config.post('users/update/:id',user)
+        .then((response) => {  
+            if(response.data.status = "error"){
+              setErrorMessage(response.data.message);
+            }else{
+
+            }
+        })
+        .catch(err => setErrorMessage(err.message));            
+    } 
+  
+  }
+
+  const oldPasswordOnChange = (text) =>{
+    setOldPassword(text);
+  } 
+
+  const newPasswordOnChange = (text) =>{
+    setNewPassword(text);
+  }
+
   return(
     <SafeAreaView style={styles.defCont}>
       <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
@@ -24,91 +61,21 @@ export default function ChangePass(props) {
       <View style={styles.logForm}>
         <TextInput style={styles.input} 
           placeholder="Old Password"
-          placeholderTextColor="#b6bfb8">
-        </TextInput>
+          placeholderTextColor="#b6bfb8"
+          value={oldPassword}
+          onChangeText={oldPasswordOnChange}/>
         <TextInput style={styles.input} 
           placeholder="New Password"
-          placeholderTextColor="#b6bfb8">
-        </TextInput>
-        <View style = {styles.submit}>
-          <Text style = {styles.submitTxt}>Confirm</Text>
-        </View>
+          placeholderTextColor="#b6bfb8"
+          value={newPassword}
+          onChangeText={newPasswordOnChange}/>
+        <TouchableOpacity style={styles.submit} onPress={comparePassword}>
+          <Text style={styles.submitTxt}>Confirm</Text>
+        </TouchableOpacity>
       </View>
+      <Text style={styles.errMessage}>{errorMessage}</Text>
     </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
-  defCont: {
-    width:'100%',
-    height:'100%',
-    flex:1,
-    justifyContent:'flex-start',
-    alignItems:'center'
-  },
-
-  nav: { 
-    paddingTop:'13%',
-    padding:12,
-    width:'100%',
-    flexDirection:'row',
-    alignItems:'center',
-    justifyContent:'center',
-    backgroundColor:'#aac4a0'   
-  },
-
-  backTouch: {
-    position:'absolute',
-    right:'95%',
-    bottom:'60%'
-  },
-
-  back: {
-    width:19,
-    height:19
-  },
-
-  navTxt: {
-    color:'black',
-    fontSize:16,
-    fontWeight:'bold'
-  },
-
-  background: {
-    flex:1,
-    width:'100%',
-    height:'100%',
-    justifyContent:'center',
-    alignItems:'center'
-  },
-
-  logForm: {
-    marginTop:'30%',
-    justifyContent:'space-between',
-    width:'80%'
-  },
-
-  input: {
-    marginVertical: 6,
-    borderRadius:8,
-    borderWidth:1,
-    padding:4,
-    paddingHorizontal: 17,
-    borderColor:'#cdcdcd'
-  },
-
-  submit: {
-    marginTop:10,
-    paddingVertical:7,
-    borderRadius:10,
-    justifyContent:'center',
-    alignItems:'center',
-    backgroundColor:'#217e60'
-  },
-
-  submitTxt: {
-    fontSize:14,
-    color:'white'
-  }
-});
 

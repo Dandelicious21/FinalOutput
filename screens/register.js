@@ -1,24 +1,70 @@
 import { StatusBar } from 'expo-status-bar';
 import React,{ useState } from 'react';
-
-import { 
+import axios from 'axios';
+import config from '../config';
+import styles from '../config/styles';
+import {
+  TouchableWithoutFeedback,
+  Keyboard,
   StyleSheet, 
   Text,
   TouchableOpacity,
   View, 
   TextInput,
   Image,
-  ImageBackground, 
-  SafeAreaView} from 'react-native';
+  ImageBackground} from 'react-native';
 
 const bg = "../assets/background2.png";
 const backIcon = "../assets/back.png";
 
 export default function Register(props) {
+
+  const [username,setUsername] = useState("");
+  const [name,setName] = useState("");
+  const [password,setPassword] = useState("");
+  
+  const [errorMessage,setErrorMessage] = useState("");
+
+  const checkCredentials = async() => {
+    const user = {
+      username,name,password
+    }
+    
+    await config.post('users/add',user)
+      .then((response) => {  
+        if(response.data.status != "error"){
+          props.loadUser({
+            id:response.data.user._id,
+            username:response.data.user.username,
+            name:response.data.user.name
+          });
+          props.change('userscreen');
+        }else{
+          console.log("-sdad");
+          setErrorMessage(response.data.message);
+        }
+        
+      })
+      .catch(err => setMessage("Error register: "+err.message));
+  }
+
+  const usernameOnChange = (text) =>{
+    setUsername(text);
+  } 
+
+  const nameOnChange = (text) =>{
+    setName(text);
+  } 
+
+  const passwordOnChange = (text) =>{
+    setPassword(text);
+  }
+
+
   return (
-    <ImageBackground source={require(bg)} style={styles.background}>
-      <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
-      <SafeAreaView style={styles.defCont}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ImageBackground onPress={Keyboard.dismiss} source={require(bg)} style={styles.background}>
+        <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
         <View style={styles.nav}>
             <TouchableOpacity style={styles.backTouch} onPress={()=>props.change('home')}>
               <Image source={require(backIcon)} style={styles.back}/>
@@ -26,98 +72,28 @@ export default function Register(props) {
             <Text style={styles.navTxt}>Create an account</Text>
         </View>
         <View style={styles.logForm}>
-          <TextInput style={styles.input} 
+          <TextInput onChangeText={usernameOnChange}
+            style={styles.textField} 
             placeholder="Username"
-            placeholderTextColor="#b6bfb8">
-          </TextInput>
-          <TextInput style={styles.input} 
+            placeholderTextColor="#b6bfb8"
+            value={username}/>
+          <TextInput onChangeText={nameOnChange}
+            style={styles.textField} 
             placeholder="Full name"
-            placeholderTextColor="#b6bfb8">
-          </TextInput>
-          <TextInput style={styles.input} 
+            placeholderTextColor="#b6bfb8"
+            value={name}/>
+          <TextInput onChangeText={passwordOnChange}
+            style={styles.textField} 
             placeholder="Password"
-            placeholderTextColor="#b6bfb8">
-          </TextInput>
-          <TouchableOpacity style = {styles.submit} onPress={()=>props.change('userscreen')}>
+            placeholderTextColor="#b6bfb8"
+            value={password}/>
+          <TouchableOpacity onPress={checkCredentials} style = {styles.submit}>
             <Text style = {styles.submitTxt}>Submit</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </ImageBackground>
+        <Text style={styles.errMessage}>{errorMessage}</Text>
+      </ImageBackground> 
+    </TouchableWithoutFeedback>
   );
 }
 
-const styles = StyleSheet.create({
-  defCont: {
-    width:'100%',
-    height:'100%',
-    flex:1,
-    justifyContent:'flex-start',
-    alignItems:'center'
-  },
-  
-  nav: { 
-    paddingTop:'13%',
-    padding:12,
-    width:'100%',
-    flexDirection:'row',
-    alignItems:'center',
-    justifyContent:'center',
-    backgroundColor:'#aac4a0'  
-  },
-
-  backTouch: {
-    position:'absolute',
-    right:'95%',
-    bottom:'60%'
-  },
-
-  back: {
-    width:19,
-    height:19
-  },
-
-  navTxt: {
-    color:'black',
-    fontSize:16,
-    fontWeight:'bold'
-  },
-
-  background: {
-    flex:1,
-    width:'100%',
-    height:'100%',
-    justifyContent:'center',
-    alignItems:'center'
-  },
-
-  logForm: {
-    marginTop:'30%',
-    justifyContent:'space-between',
-    width:'80%'
-  },
-
-  input: {
-    marginVertical: 6,
-    borderRadius:8,
-    borderWidth:1,
-    padding:4,
-    paddingHorizontal: 17,
-    borderColor:'#cdcdcd'
-  },
-
-  submit: {
-    marginTop:10,
-    paddingVertical:7,
-    borderRadius:10,
-    justifyContent:'center',
-    alignItems:'center',
-    backgroundColor:'#217e60'
-  },
-
-  submitTxt: {
-    fontSize:14,
-    color:'white'
-  }
-
-});

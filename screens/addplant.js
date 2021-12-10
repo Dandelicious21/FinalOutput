@@ -1,6 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { 
+import { Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import axios from 'axios';
+import config from '../config';
+import KeyboardAvoidingWrapper from '../config/KeyboardAvoidingWrapper';
+import {
+  KeyboardAvoidingView,
+  ScrollView,
   StyleSheet, 
   Text, 
   View,
@@ -9,46 +15,115 @@ import {
   Image } from 'react-native';
 
 export default function AddPlant(props) {
-  
+  const {id,username,name} = props.loadUser;
   const backIcon = "../assets/back.png";
   const saveIcon = "../assets/save.png";
 
-  return (
-   <View style={styles.defCont}>
-    <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
-      <View style={styles.nav}>
-        <TouchableOpacity onPress={()=>props.change('userscreen')}>
-          <Image source={require(backIcon)} style={styles.back}/>
-        </TouchableOpacity>
-        <Text style={styles.navTxt}>Add Plant</Text>
-        <TouchableOpacity onPress={()=>props.change('userscreen')}>
-          <Image source={require(saveIcon)} style={styles.save}/>
-        </TouchableOpacity>
-    </View>
+  //controlled components
+  const [plantName,setPlantName] = useState("");
+  const [species,setSpecies] = useState("");
+  const [dateAcquired,setDateAcquired] = useState("");
+  const [description,setDescription] = useState("");
+  const [errorMessage,setErrorMessage] = useState("");
 
-    <View style={styles.uploadBox}>
-      <Text style={styles.uploadText}>Upload Photo</Text>
-    </View>
+  const plantNameOnChange = (text) => {
+    setPlantName(text);
+  }
 
-    <TextInput style={styles.inputField} placeholder="Name"
-            placeholderTextColor="#b6bfb8"/>
-    <TextInput style={styles.inputField} placeholder="Species"
-            placeholderTextColor="#b6bfb8"/>
-    <TextInput style={styles.inputField} placeholder="Date Acquired(MM/DD/YYYY)"
-            placeholderTextColor="#b6bfb8"/>
-    <TextInput style={styles.inputFieldDesc} placeholder="Description"
-            placeholderTextColor="#b6bfb8"/>
+  const speciesOnChange = (text) => {
+    setSpecies(text);
+  }
 
-   
+  const dateAcquiredOnChange = (text) => {
+    setDateAcquired(text);
+  }
 
-   </View>
+  const descriptionOnChange = (text) => {
+    setDescription(text);
+  }
+
+  const checkDetails = async() => {
+    let name = plantName;
+    let userID = id;
+
+    const plant = {
+      userID,name,species,dateAcquired,description
+    }
+    
+    var flag = true;
+    for(let x in plant){
+      plant[x] = plant[x].trim();
+      if(plant[x].length == 0){
+        flag = false;
+        break;
+      } 
+    }
+
+    if(flag){
+      await config.post('plants/add',plant)
+        .then((response) => {  
+          if(response.data.status != "error"){
+            props.change('userscreen');
+          }else{
+            setErrorMessage(response.data.message);
+          }
+        })
+        .catch(err => setErrorMessage("Add plant failed: "+err.message));
+    }else{
+      setErrorMessage("Missing fields");
+    }
+  }
+
+  return ( 
+    <View style={styles.defCont}>      
+      <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
+        <View style={styles.nav}>
+          <TouchableOpacity onPress={()=>props.change('userscreen')}>
+            <Image source={require(backIcon)} style={styles.back}/>
+          </TouchableOpacity>
+          <Text style={styles.navTxt}>Add Plant</Text>
+          <TouchableOpacity onPress={checkDetails}>
+            <Image source={require(saveIcon)} style={styles.save}/>
+          </TouchableOpacity>
+      </View>
+
+      <KeyboardAvoidingWrapper percent={0.2}>
+        <View style={{width:'100%',alignItems:'center'}}>
+          <View style={styles.uploadBox}>
+            <Text style={styles.uploadText}>Upload Photo</Text>
+          </View>
+          <TextInput onChangeText={plantNameOnChange} 
+                  style={styles.inputField} placeholder="Name"
+                  placeholderTextColor="#b6bfb8"
+                  value={plantName}/>
+          <TextInput onChangeText={speciesOnChange} 
+                  style={styles.inputField} placeholder="Species"
+                  placeholderTextColor="#b6bfb8"
+                  value={species}/>
+          <TextInput onChangeText={dateAcquiredOnChange}
+                  style={styles.inputField} placeholder="Date Acquired(MM/DD/YYYY)"
+                  placeholderTextColor="#b6bfb8"
+                  value={dateAcquired}/>  
+          <TextInput onChangeText={descriptionOnChange} 
+                  style={styles.inputFieldDesc} 
+                  placeholder="Description"
+                  placeholderTextColor="#b6bfb8"
+                  value={description}/>
+
+          <Text style={styles.errMessage}>{errorMessage}</Text>
+        </View>
+      </KeyboardAvoidingWrapper>    
+    </View>   
   );
 }
 
 const styles = StyleSheet.create({
+  errMessage: {
+    color:"red"
+  },
+
   defCont: {
     width:'100%',
-    height:'100%',
     flex:1,
     justifyContent:'flex-start',
     alignItems:'center'
@@ -70,8 +145,8 @@ const styles = StyleSheet.create({
   },
 
   save: {
-    width:23,
-    height:23
+    width:20,
+    height:20
   },
 
   navTxt: {
@@ -85,8 +160,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderColor: '#bbb',
     borderWidth: 2,
-    height: '27%',
-    width: '55%',
+    height: '33%',
+    width: '50%',
     alignItems: 'center',
     justifyContent: 'center',
   },

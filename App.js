@@ -1,18 +1,30 @@
 import { StatusBar } from 'expo-status-bar';
 import React, {useState} from 'react';
-import { View,Text } from 'react-native';
 import Home from './screens/home';
 import Register from './screens/register';
 import Login from './screens/login';
 import UserScreen from './screens/userscreen';
-import Settings from './screens/settings';
+import AccountSettings from './screens/accountsettings';
 import ChangePass from './screens/changepass';
 import PlantInfo from './screens/plantinfo';
 import AddPlant from './screens/addplant';
+import { ScrollView } from 'react-native'
 
 //change settings to account settings
 export default function App() {
-  const [page, setPage] = useState("home");
+
+  const [user,setUser] = useState("");
+  const [plantInfo,setPlantInfo] = useState("");
+  const [page, setPage] = useState("register");
+
+  const assignUser = (newUser) =>{
+    setUser(newUser);
+  }
+
+  const assignPlant = (chosenPlant) => {
+    setPlantInfo(chosenPlant);
+  }
+
   const changePage = (newPage) => {
     setPage(newPage);
   }
@@ -23,31 +35,33 @@ export default function App() {
     )
   }else if(page == 'login'){
     return (
-      <Login change={changePage}/>
+      <Login change={changePage} loadUser={assignUser}/>
     )
   }else if(page == 'register'){
     return (
-      <Register change={changePage}/>
+      <Register change={changePage} loadUser={assignUser}/>
     )
   }else if(page == 'settings'){
     return (
-      <Settings change={changePage}/>
+      <AccountSettings change={changePage} loadUser={user}/>
     )
   }else if(page == 'userscreen'){
     return (
-      <UserScreen change={changePage}/>
+      <UserScreen change={changePage} loadPlant={assignPlant} loadUser={user}/>
     )
   }else if(page == 'plantinfo'){
     return (
-      <PlantInfo change={changePage}/>
+      <PlantInfo change={changePage} loadPlant={plantInfo}/>
     )
   }else if(page == 'changepass'){
     return (
-      <ChangePass change={changePage}/>
+      <ChangePass change={changePage} loadUser={user}/>
     )
   }else if(page == 'addplant'){
     return (
-      <AddPlant change={changePage}/>
+      <AddPlant change={changePage} loadUser={user}/>
+      
+      
     )
   }
   else{}
