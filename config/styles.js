@@ -2,14 +2,14 @@ import { StyleSheet , Dimensions } from 'react-native';
 
 const btn = [8,'48%',15]; //padding , width
 const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
+const screenHeight = Dimensions.get('screen').height;
 
 const styles = StyleSheet.create({
   //HOME,LOGIN,REGISTER
   backgroundSplash: {
     flex:1,
     width:windowWidth,
-    height:windowHeight,
+    height:screenHeight,
     backgroundColor:'#aac4a0',
     alignItems:'center',   
     justifyContent:'center'
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     flex:1,
     position:'absolute',
     width:windowWidth,
-    height:windowHeight,
+    height:screenHeight,
     justifyContent:'flex-start',
     alignItems:'center'
   },
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   mainContent: {
     flex:0,
     width:'100%',
-    paddingVertical:2,
+    paddingVertical:3,
     alignItems: 'flex-start',
     justifyContent: 'center'
   },
@@ -108,13 +108,18 @@ const styles = StyleSheet.create({
   },
 
   errMessage: {
-    color:"red"
+    borderRadius:3,
+    padding:'2.4%',
+    textAlign:'center',
+    marginVertical: '4%',
+    width:'83%',
+    color:"#db3327"
   },
 
   defCont: {
     flex:1,
     width:windowWidth,
-    height:windowHeight,
+    height:screenHeight,
     justifyContent:'flex-start',
     alignItems:'center'
   },
@@ -170,7 +175,7 @@ const styles = StyleSheet.create({
     borderRadius:10,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'#217e60'
+    backgroundColor:'#4b927b'
   },
 
   submitTxt: {
@@ -178,13 +183,23 @@ const styles = StyleSheet.create({
     color:'white'
   },
 
+  alertNotif: {
+    borderRadius:3,
+    padding:'2.4%',
+    textAlign:'center',
+    marginVertical: '4%',
+    width:'83%'
+  },
+
+  //END OF GENERAL LAYOUTS
+
   //USERSCREEN STYLE
-  mainCont: {
-    width:'100%',
-    height:windowHeight,
+  mainUserCont: {
+    width:windowWidth,
+    height:screenHeight,
     justifyContent:'flex-start',
     alignItems:'center',
-    paddingBottom: 10,
+    paddingBottom: '13%',
   },
 
   headerBar: {
@@ -224,12 +239,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: '5.5%'
   },
 
+  addBtnIcon: {
+    width:45,
+    height:45
+  },
+
   addPlant: {
-    justifyContent:'flex-end',
+    justifyContent:'space-between',
     alignItems:'center',
     backgroundColor: '#f9f5f6',
     borderRadius: 10,
-    padding: '2.5%',
+    paddingVertical: '2%',
     width:'24%'
   },
 
@@ -249,10 +269,17 @@ const styles = StyleSheet.create({
   },
 
   miniBtn: {
+    alignItems:'center',
+    justifyContent:'center',
     borderRadius: 7,
     width:'100%',
-    height:'44%',
+    height:'45%',
     backgroundColor: '#f9f5f6',
+  },
+
+  miniBtnIcon: {
+    width:19,
+    height:19
   },
 
   countCont:{
@@ -268,56 +295,53 @@ const styles = StyleSheet.create({
 
   searchBox: {
     backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: "#cbcbcb",
-    borderRadius: 10,
-    width:'85%',
+    borderWidth: 1.3,
+    borderColor: "#aaa",
+    borderRadius: 40,
+    width:'90%',
     padding: 2,
     paddingHorizontal:'4%',
     color: '#a2a7a6',
     fontSize: 14,
-    marginVertical: '6%'
+    marginVertical: '5%'
   },
 
   plantPanels: {
-    marginVertical:'1%',
-    width:'80%',
-    flexDirection: 'row',
+    paddingTop:'2%',
+    paddingHorizontal:'5%',
     flexWrap:'wrap',
-    justifyContent: 'space-between'
+    flexDirection:'row',
+    justifyContent:'space-between',
+    width:windowWidth,
   },
 
-  lineBreak: {
+  plantCardImg: {
+    position:'absolute',
+    borderColor:'#bbb',
+    borderWidth:0.5,
+    borderRadius:5,
     width:'100%',
-    height:'0.2%',
-    backgroundColor: '#ddd',
-  },
-
-  plantCardImg: {   
-    borderTopLeftRadius:11,
-    borderTopRightRadius:11,
-    width:'100%',
-    height:'83%'
+    height:'100%'
   },
 
   plantCard:{
-    borderRadius:12,
-    borderWidth:1,
-    borderColor:'#b8b8b8',
-    marginVertical: '2%',
-    width:'48%',
-    height:150,
-  },
-
-  plantCardNameCont: {
-    justifyContent:'center',
-    alignItems:'center',
-    height:'17%',
-    width:'100%'
+    backgroundColor:'white',
+    justifyContent:'flex-end',
+    marginVertical: '1%',
+    width:'49%',
+    height:160,
   },
 
   plantCardName: {
-    fontWeight:'bold',
+    borderBottomLeftRadius:5,
+    borderBottomRightRadius:5,
+    fontSize:12.5,
+    height:'17%',
+    paddingHorizontal: '5%',
+    paddingTop:'2%',
+    fontWeight:'700',
+    color:'white',
+    backgroundColor:'rgba(0, 0, 0, 0.3)'
   },
 
   //ACCOUNT SETTINGS
@@ -333,13 +357,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: '11%',
     justifyContent: 'flex-start'
-  },
-
-  dpBox: {
-    width: '36%',
-    height: '100%',
-    backgroundColor: '#EBF4FA',
-    borderRadius: 15,
   },
 
   credentials: {
@@ -358,10 +375,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
+  thickLine: {
+    width:'100%',
+    height:'1.2%',
+    backgroundColor: '#ccc',
+  },
+
   lineBreak: {
     width:'100%',
     height:'0.1%',
-    backgroundColor: '#ddd',
+    backgroundColor: '#ccc',
   },
 
   optTxt: {
@@ -393,14 +416,17 @@ const styles = StyleSheet.create({
   },
 
   plantPic: {
-    borderRadius:15,
-    marginVertical: '8%',
-    width: '65%',
-    height: '30%',
+    borderColor:'#bbb',
+    borderWidth:1,
+    borderRadius:11,
+    marginTop: '8%',
+    width: '75%',
+    height: '36.5%',
   },
 
   plantName: {
-    fontSize: 25
+    marginTop: '6%',
+    fontSize: 22
   },
 
   infoCont: {
@@ -408,17 +434,43 @@ const styles = StyleSheet.create({
     width:'80%',
   },
 
+  infoTxt: {
+    color:'#333'
+  },
+
   label: {
     marginTop: '10%',
-    fontSize: 16,
+    fontSize: 14.5,
     fontWeight:'bold'
   },
 
   plantTxt: {
     marginLeft:'3%',
     fontSize: 15
-  }
+  },
 
+  optionsPanel: {
+    width:120,
+    padding:5,
+    marginTop:25 
+  },
+
+  optionCont: {
+    paddingVertical: '10%',
+    alignItems:'center',
+    flexDirection:'row'
+  },
+
+  optionIcon: {
+    width:20,
+    height:20,
+    marginRight:'10%'
+  },
+
+  textOption: {
+    fontSize:15
+  }
+  //plantinfo -- END
 });
 
 export default styles;

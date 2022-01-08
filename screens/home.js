@@ -23,7 +23,7 @@ export default function Home(props) {
           <Text style={styles.mainNavTxt}>Updates</Text>
         </View>
         <View style={styles.mainContent}>
-          <Text style={styles.appTitle}>Eden</Text>
+          <Text style={styles.appTitle}>eden</Text>
           <Text style={styles.tagLine}>manage your digital garden</Text>
           <View style={styles.btnCont}>
             <TouchableOpacity style = {styles.signIn} onPress={()=>props.change('login')}>

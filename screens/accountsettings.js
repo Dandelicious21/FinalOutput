@@ -8,11 +8,17 @@ import {
   View, 
   Image,
   SafeAreaView} from 'react-native';
-
 const backIcon = "../assets/back.png";
 
 export default function AccountSettings(props) {
   const {id,username,name} = props.loadUser;
+
+  const logout = () => {
+    props.clearUser("");
+    props.clearPlantList([]);
+    props.clearPlantCount("");
+    props.change('home');
+  }
 
   return (
       <View style={styles.defCont}>
@@ -24,7 +30,6 @@ export default function AccountSettings(props) {
         <Text style={styles.navTxt}>Account</Text>
         </View>
         <View style={styles.profileBox}>
-          <View style={styles.dpBox}></View>
             <View style={styles.credentials}>
               <Text style={styles.fullName}>{name}</Text>
               <Text style={styles.username}>@{username}</Text>
@@ -35,7 +40,7 @@ export default function AccountSettings(props) {
             <TouchableOpacity onPress={()=>props.change('changepass')}>
               <Text style={styles.optTxt}>Change Password</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={()=>props.change('home')}>
+            <TouchableOpacity onPress={logout}>
               <Text style={styles.optTxt}>Log out</Text>
             </TouchableOpacity>
         </View>

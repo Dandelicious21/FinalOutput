@@ -1,13 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
 import { Dimensions } from 'react-native';
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState , useEffect, useRef} from 'react';
 import config from '../config';
+import * as ImagePicker from 'expo-image-picker';
 import KeyboardAvoidingWrapper from '../config/KeyboardAvoidingWrapper';
+import DateTimePicker from "@react-native-community/datetimepicker"; 
 import {
-  KeyboardAvoidingView,
-  ScrollView,
-  StyleSheet, 
+  Keyboard,
+  StyleSheet,
+  ScrollView, 
   Text, 
   View,
   TextInput, 
@@ -15,90 +16,225 @@ import {
   Image } from 'react-native';
 
 export default function EditPlant(props) {
+  //assets 
   const backIcon = "../assets/back.png";
   const saveIcon = "../assets/save.png";
+  const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  
+  //profile
+  const {id,username,name} = props.loadUser;
 
   //controlled components
+  const [image, setImage] = useState(null);
   const [plantName,setPlantName] = useState(props.getPlant.name);
   const [species,setSpecies] = useState(props.getPlant.species);
-  const [dateAcquired,setDateAcquired] = useState(props.getPlant.dateAcquired);
+  const [dateAcquired,setDateAcquired] = useState("");
   const [description,setDescription] = useState(props.getPlant.description);
   const [errorMessage,setErrorMessage] = useState("");
+  const [imgResLink, setImgResLink] = useState("");
+  const [errorBg,setErrorBg] = useState("white");
+  const [isPickerShow, setIsPickerShow] = useState(false);
+  const [formattedDate,setFormattedDate] = useState(props.getPlant.dateAcquired);
 
-  const plantNameOnChange = (text) => {
-    setPlantName(text);
+  const parseDate = () => {
+    var dt = props.getPlant.dateAcquired.split(" ");
+    var r = 1;
+    for(; r < month.length; r++) if(dt[r-1] == month[r-1])break;
+    r += "";
+    dt[0] = (r.length == 1)? "0"+r:r;
+    dt[1] = dt[1].split(",")[0];
+    if(dt[1].length == 1) dt[1] = "0"+dt[1];
+    
+    const subDate = new Date(dt[2]+'-'+dt[0]+'-'+dt[1]);
+    setDateAcquired(subDate);
   }
 
-  const speciesOnChange = (text) => {
-    setSpecies(text);
-  }
+  const uploadData = async() => {
+    Keyboard.dismiss();
 
-  const dateAcquiredOnChange = (text) => {
-    setDateAcquired(text);
-  }
+    var flag = true;
+    var marker = true;
+    let name = plantName;
+    let userID = id;
 
-  const descriptionOnChange = (text) => {
-    setDescription(text);
-  }
-
-  const checkDetails = async() => {
-    const plant = {
-      plantName,species,dateAcquired,description
+    var plantChunks = {
+      name,species,description
     }
     
-    var flag = true;
-    for(let x in plant){
-      plant[x] = plant[x].trim();
-      if(plant[x].length == 0){
+    for(let x in plantChunks){
+      plantChunks[x] = plantChunks[x].trim();
+      if(plantChunks[x].length == 0){
         flag = false;
         break;
       } 
     }
 
-    if(flag){
-      await config.post("plants/update/"+props.getPlant._id,plant)
-        .then((response) => {  
-          if(response.data.status != "error"){
-            console.log("test");
-            //Follow up data fetch
-            config.get('plants/'+props.getPlant._id)
-              .then((plantRes) => {  
-                if(plantRes.data.status != "error"){
-                  props.changePlant(plantRes.data.message);
-                  props.change('plantinfo');
-                }else{
-                  setErrorMessage(plantRes.data.message);
-                }
-              })
-            .catch(err => setMessage("Loading plant failed: "+err.message));
-          }else{
-            setErrorMessage(response.data.message);
+    plantChunks["dateAcquired"] = formattedDate.toString();
+
+    //if image is changed
+    const formData = new FormData();
+    formData.append('text','injected draft text');
+    formData.append('imgLink',{
+      uri:image,
+      type:'image/jpg',
+      name:id+'.jpg'
+    });
+  
+    const header = {
+      headers: {
+        "Content-type": "multipart/form-data"
+      }
+    }
+
+    for(let y in plantChunks){
+      if(plantChunks[y] != props.getPlant[y]){
+        //if no changes were made, image will only be uploaded
+        marker = false; 
+      }
+    }
+
+    if(image !== null){
+      await config.post('plants/updateImage/'+props.getPlant._id,formData,header)
+        .then(res => {
+          if(res.data.status != "error" && marker){
+             props.alterToaster([plantName,"1"]);
+             props.change('userscreen');  
           }
         })
-        .catch(err => setErrorMessage("Add plant failed: "+err.message));
-    }else{
-      setErrorMessage("Missing fields");
+        .catch(err => {
+          alterErrorMessage(err.message);
+        })
     }
+    
+    //if text details is changed only
+    if(flag){
+      await config.post('plants/update/'+props.getPlant._id,plantChunks)
+        .then(res => {
+           if(res.data.status != "error"){
+            props.alterToaster([plantName,"1"]);
+            props.change('userscreen');
+           }else{
+            alterErrorMessage(res.message);  
+           }
+        })
+        .catch(err => {
+          alterErrorMessage(err.message);
+        })
+    }else{
+      alterErrorMessage("Missing field");
+    }  
   }
+
+  const clearErrorMessage = () => {
+    setErrorBg("white");
+    setErrorMessage("");
+  }
+
+  const alterErrorMessage = (txt) => {
+    setErrorMessage(txt);
+    setErrorBg('#ffdedb');
+  }
+
+  const plantNameOnChange = (text) => {
+    clearErrorMessage();
+    setPlantName(text);
+  }
+
+  const speciesOnChange = (text) => {
+    clearErrorMessage();
+    setSpecies(text);
+  }
+
+  const dateAcquiredOnChange = (text) => {
+    clearErrorMessage();
+    setDateAcquired(text);
+  }
+
+  const descriptionOnChange = (text) => {
+    clearErrorMessage();
+    setDescription(text);
+  }
+
+  //Image Picking
+  const mounted = useRef();
+  useEffect(() => {
+    if(!mounted.current){
+      (async () => {
+        if (Platform.OS !== 'android') {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            alert('Sorry, we need camera roll permissions to make this work!');
+          }
+        }
+      })();
+      parseDate();
+      mounted.current = true;
+    }else{
+      //
+    }
+  }, []);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setImage(result.uri);
+    }
+  };
+
+  //End of Image Picking
+
+  const showPicker = () => {
+    setIsPickerShow(true);
+  };
+
+  const onDateChange = (event, value) => {
+    const currentDate = value || dateAcquired;
+    setIsPickerShow(Platform.OS === 'ios');
+        
+    if(event.type == "set") {
+      alterFormattedDate(value);
+      setDateAcquired(value);
+    }else{
+      return null
+    }
+  };
+
+  const alterFormattedDate = (value) => {
+    let newDate = (month[value.getMonth()])+' '+value.getDate()+', '+value.getFullYear()
+    setFormattedDate(newDate);
+  }
+
+
 
   return ( 
     <View style={styles.defCont}>      
       <StatusBar backgroundColor="rgba(0,0,0,0.2)" /> 
         <View style={styles.nav}>
-          <TouchableOpacity onPress={()=>props.change('plantinfo')}>
+          <TouchableOpacity onPress={() => props.change('plantinfo')}>
             <Image source={require(backIcon)} style={styles.back}/>
           </TouchableOpacity>
-          <Text style={styles.navTxt}>Edit mode</Text>
-          <TouchableOpacity onPress={checkDetails}>
+          <Text style={styles.navTxt}>Edit Plant</Text>
+          <TouchableOpacity onPress={uploadData}>
             <Image source={require(saveIcon)} style={styles.save}/>
           </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingWrapper percent={0.2}>
-        <View style={{width:'100%',alignItems:'center'}}>
-          <View style={styles.uploadBox}>
-            <Text style={styles.uploadText}>Upload Photo</Text>
-          </View>
+        <View style={styles.formCont}>
+          <TouchableOpacity onPress={pickImage} style={styles.uploadBox}>
+            {!image && 
+              <Image 
+              source={{uri:'http://192.168.254.102:19000/backend/uploads/'+props.getPlant.imgLink}} 
+              style={styles.imagePanel} />}
+             {image && <Image source={{ uri: image }} 
+             style={styles.imagePanel} />}
+          </TouchableOpacity>
           <TextInput onChangeText={plantNameOnChange} 
                   style={styles.inputField} placeholder="Name"
                   placeholderTextColor="#b6bfb8"
@@ -107,17 +243,34 @@ export default function EditPlant(props) {
                   style={styles.inputField} placeholder="Species"
                   placeholderTextColor="#b6bfb8"
                   value={species}/>
-          <TextInput onChangeText={dateAcquiredOnChange}
-                  style={styles.inputField} placeholder="Date Acquired(MM/DD/YYYY)"
-                  placeholderTextColor="#b6bfb8"
-                  value={dateAcquired}/>  
+          <View style={styles.dateField}>
+            <Text style={styles.pickedDate}>{formattedDate.toString()}</Text>
+          
+            {!isPickerShow && (
+              <TouchableOpacity 
+                  onPress={showPicker} style={styles.dateBtn}>
+                <Text style={styles.dateBtnTxt}>Date Acquired</Text>
+              </TouchableOpacity>
+            )}
+
+            {isPickerShow && (
+               <DateTimePicker
+                value={dateAcquired}
+                mode="datetime"
+                is24Hour={true}
+                display="default"
+                onChange={onDateChange}
+              />
+            )}
+          </View>   
           <TextInput onChangeText={descriptionOnChange} 
                   style={styles.inputFieldDesc} 
                   placeholder="Description"
                   placeholderTextColor="#b6bfb8"
                   value={description}/>
-
-          <Text style={styles.errMessage}>{errorMessage}</Text>
+         <Text style={[styles.errMessage,{backgroundColor:errorBg}]}>
+              {errorMessage}
+          </Text>
         </View>
       </KeyboardAvoidingWrapper>    
     </View>   
@@ -125,13 +278,32 @@ export default function EditPlant(props) {
 }
 
 const styles = StyleSheet.create({
+  imagePanel:{ 
+    width: '100%', 
+    height: '100%', 
+    borderRadius: 13
+  },
+  formCont:{
+    width:'100%',
+    alignItems:'center'
+  },
+
+  tapInfo:{
+    color:'#999',
+    textAlign:'center'
+  },
+
   errMessage: {
-    color:"red"
+    borderRadius:3,
+    padding:'2.4%',
+    textAlign:'center',
+    marginVertical:3,
+    width:'85%',
+    color:"#db3327"
   },
 
   defCont: {
-    width:Dimensions.get('window').width,
-    height:Dimensions.get('window').height,
+    width:'100%',
     flex:1,
     justifyContent:'flex-start',
     alignItems:'center'
@@ -167,9 +339,9 @@ const styles = StyleSheet.create({
     marginVertical: '10%',
     borderRadius: 15,
     borderColor: '#bbb',
-    borderWidth: 2,
+    borderWidth: 1,
     height: '33%',
-    width: '50%',
+    width: '53%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -188,15 +360,56 @@ const styles = StyleSheet.create({
     borderColor:'#cdcdcd'
   },
 
-  inputFieldDesc: {
-    paddingBottom:'20%',
+  dateField: {
+    alignItems:'center',
+    flexDirection:'row',
+    justifyContent:'space-between',
+    height:'10%',
     width:'85%',
     marginVertical: 6,
     borderRadius:8,
     borderWidth:1,
-    padding:4,
+    padding:'3.5%',
+    paddingHorizontal:'4.3%',
+    borderColor:'#cdcdcd'
+  },
+
+  inputFieldDesc: {
+    padding:'1%',
+    paddingBottom:'13%',
+    width:'85%',
+    marginVertical: 6,
+    borderRadius:8,
+    borderWidth:1,
     paddingHorizontal: 17,
     borderColor:'#cdcdcd'
+  },
+
+  dateBtn: {
+   color:'white',
+   justifyContent:'center',
+   alignItems:'center',
+   padding:'1.5%',
+   paddingHorizontal: '3%',
+   backgroundColor: '#559782'
+  },
+
+  dateBtnTxt: {  
+   color:'white',
+  },
+
+  pickedDate: {
+    fontSize: 14,
+    color: 'black',
+    borderColor:'#cdcdcd', 
+  },
+  
+  dateText: {
+    fontSize:12,
+    borderRadius:8,
+    borderWidth:1,
+    color: "#bbbbbb",
+    borderColor:'#cdcdcd'  
   },
 
 });

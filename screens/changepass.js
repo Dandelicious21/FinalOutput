@@ -2,7 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import React,{ useState } from 'react';
 import config from '../config';
 import styles from '../config/styles';
-import { 
+import {
+  Keyboard, 
   StyleSheet, 
   Text,
   TouchableOpacity,
@@ -18,35 +19,62 @@ export default function ChangePass(props) {
 
   const [oldPassword,setOldPassword] = useState("");
   const [newPassword,setNewPassword] = useState("");
-  const [errorMessage,setErrorMessage] = useState("");
+  const [message,setMessage] = useState("");
+  const [messageBG,setMessageBG] = useState("white");
+  const [messageFG,setMessageFG] = useState("#db3327");
+
+  const clearMessage = () => {
+    setMessage("");
+    setMessageBG('white');
+    setMessageFG('white');
+  }
+
+  const changeMessage = (txt) => {
+    setMessage(txt);
+    setMessageBG('#ffdedb');
+    setMessageFG('#db3327');
+  }
 
   const comparePassword = async() => {
+    Keyboard.dismiss();
     const user = {
       id,oldPassword,newPassword
     }
-    
-    if(newPassword.length < 8){
-      setErrorMessage("Minimum password length is 8")
-    }else{
-      await config.post('users/update/:id',user)
-        .then((response) => {  
-            if(response.data.status != "error"){
-              setErrorMessage(response.data.message);
-            }else{
 
-            }
-        })
-        .catch(err => setErrorMessage(err.message));            
-    } 
-  
+    //flag means all fields are filled
+    var flag = (oldPassword != "") && (newPassword != "");
+
+    if(flag){
+      if(newPassword.length < 8){
+        changeMessage("Minimum password length is 8")
+      }else{
+        await config.post('users/update/:id',user)
+          .then((response) => {  
+              if(response.data.status != "error"){
+                setOldPassword("");
+                setNewPassword(""); 
+                setMessageFG('#558374');
+                setMessageBG('#dfece3');
+                setMessage("Password has been changed");
+              }else{
+                changeMessage(response.data.message);
+              }
+          })
+          .catch(err => changeMessage(err.message));            
+      }
+    }else{
+      changeMessage("Please fill all fields");
+    }
   }
 
   const oldPasswordOnChange = (text) =>{
     setOldPassword(text);
+    clearMessage();
   } 
 
   const newPasswordOnChange = (text) =>{
     setNewPassword(text);
+    clearMessage();
   }
 
   return(
@@ -59,12 +87,14 @@ export default function ChangePass(props) {
           <Text style={styles.navTxt}>Change Password</Text>
       </View>
       <View style={styles.logForm}>
-        <TextInput style={styles.input} 
+        <TextInput style={styles.textField}
+          secureTextEntry={true}
           placeholder="Old Password"
           placeholderTextColor="#b6bfb8"
           value={oldPassword}
           onChangeText={oldPasswordOnChange}/>
-        <TextInput style={styles.input} 
+        <TextInput style={styles.textField}
+          secureTextEntry={true} 
           placeholder="New Password"
           placeholderTextColor="#b6bfb8"
           value={newPassword}
@@ -73,7 +103,12 @@ export default function ChangePass(props) {
           <Text style={styles.submitTxt}>Confirm</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.errMessage}>{errorMessage}</Text>
+      <Text style={[styles.alertNotif,{
+        backgroundColor:messageBG,
+        color:messageFG
+      }]}>
+        {message}
+      </Text>
     </SafeAreaView>
     );
 }
